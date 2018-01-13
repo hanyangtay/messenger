@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -29,8 +30,9 @@ func main() {
 	go handleMessages()
 
 	// start server
-	log.Println("http server started on port :8080")
-	err := http.ListenAndServe(":8080", nil)
+	port = os.Getenv("PORT")
+	log.Printf("http server started on port :%v\n", port)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
