@@ -30,7 +30,7 @@ func main() {
 	go handleMessages()
 
 	// start server
-	port = os.Getenv("PORT")
+	port := os.Getenv("PORT")
 	log.Printf("http server started on port :%v\n", port)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
