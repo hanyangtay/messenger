@@ -109,18 +109,18 @@ export default {
 
 
       var self = this
-      this.ws = new WebSocket('ws://' + window.location.host + '/ws')
+      this.ws = new WebSocket('wss://' + window.location.host + '/ws')
 
       this.ws.addEventListener('message', function(e) {
         var msg = JSON.parse(e.data)
 
-        if (msg.user == 'notif') {
-          self.usercount = msg.text
-          return
+        if (msg.username == 'notif') {
+          self.usercount = msg.message
+        } else {
+          msg.time = new Date(msg.time).toLocaleString()
+          self.messages.push(msg)
         }
-        msg.time = new Date(msg.time).toLocaleString();
-
-        self.messages.push(msg)
+        
       })  
     },
 
@@ -131,8 +131,8 @@ export default {
 
       this.ws.send(
                     JSON.stringify({
-                        user: this.username,
-                        text: this.newMsg,
+                        username: this.username,
+                        message: this.newMsg,
                     }))
 
 

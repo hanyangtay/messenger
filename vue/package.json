@@ -16,6 +16,7 @@
     "@material/ripple": "^0.28.0",
     "@material/textfield": "^0.28.0",
     "@material/typography": "^0.28.0",
+    "express-force-https": "^1.0.0",
     "vue": "^2.5.2",
     "vue-router": "^3.0.1"
   },

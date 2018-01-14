@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -8,20 +9,32 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
-var clients = make(map[*websocket.Conn]bool)
-var broadcast = make(chan Message)
-
-var upgrader = websocket.Upgrader{}
+var (
+	clients   map[*websocket.Conn]bool
+	broadcast chan Message
+	upgrader  websocket.Upgrader
+	db        *sqlx.DB
+	messages  []Message
+)
 
 type Message struct {
-	User string    `json:"user"`
-	Text string    `json:"text"`
-	Time time.Time `json:"time"`
+	Username string    `json:"username" db:"username"`
+	Message  string    `json:"message" db:"message"`
+	Time     time.Time `json:"time" db:"time"`
 }
 
 func main() {
+	var err error
+
+	// init global variables
+	clients = make(map[*websocket.Conn]bool)
+	broadcast = make(chan Message)
+	upgrader = websocket.Upgrader{}
+
 	fs := http.FileServer(http.Dir("public"))
 	http.Handle("/", fs)
 
@@ -29,10 +42,25 @@ func main() {
 
 	go handleMessages()
 
+	// connect to db
+	db, err = sqlx.Open("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalf("Error opening database: %q", err)
+	}
+
+	// load messages from db
+	messages = []Message{}
+	err = db.Select(&messages, "SELECT username, message, time FROM messages ORDER BY time ASC LIMIT 100")
+	if err != nil {
+		log.Printf("Import error: %v\n", err)
+		return
+	}
+
 	// start server
 	port := os.Getenv("PORT")
 	log.Printf("http server started on port :%v\n", port)
-	err := http.ListenAndServe(":"+port, nil)
+
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -51,16 +79,16 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	// register client
 	clients[ws] = true
 
-	joinNotif := Message{User: "notif", Text: strconv.Itoa(len(clients))}
+	joinNotif := Message{Username: "notif", Message: strconv.Itoa(len(clients))}
 
-	// q := datastore.NewQuery("chatMessage").Order("time").Limit(100)
-	// pastMessages := make([]Message, 0, 100)
-
-	// ctx := appengine.NewContext(r)
-	// if _, err := q.GetAll(ctx, &pastMessages); err != nil {
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
+	for _, message := range messages {
+		err := ws.WriteJSON(message)
+		if err != nil {
+			log.Printf("Disconnected: %v", err)
+			delete(clients, ws)
+			return
+		}
+	}
 
 	broadcast <- joinNotif
 
@@ -72,23 +100,29 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("Disconnected: %v", err)
 			delete(clients, ws)
-			quitNotif := Message{User: "notif", Text: strconv.Itoa(len(clients))}
+			quitNotif := Message{Username: "notif", Message: strconv.Itoa(len(clients))}
 			broadcast <- quitNotif
 			break
 		}
 
 		msg.Time = time.Now()
 
-		//persist in datastore
-		// key := datastore.NewIncompleteKey(ctx, "chatMessage", nil)
-		// if _, err := datastore.Put(ctx, key, &msg); err != nil {
-		// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-		// 	return
-		// }
+		//persist in database
+		messages = append(messages, msg)
+		go saveMessage(&msg)
 
 		// send received message to channel
 		broadcast <- msg
 
+	}
+}
+
+func saveMessage(msg *Message) {
+	tx := db.MustBegin()
+	tx.NamedExec("INSERT INTO messages (username, message) VALUES (:username, :message)", msg)
+	err := tx.Commit()
+	if err != nil {
+		log.Printf("Message error: %v", err)
 	}
 }
 
@@ -101,7 +135,7 @@ func handleMessages() {
 			err := client.WriteJSON(msg)
 			if err != nil {
 				log.Printf("Disconnected: %v", err)
-				quitNotif := Message{User: "notif", Text: strconv.Itoa(len(clients))}
+				quitNotif := Message{Username: "notif", Message: strconv.Itoa(len(clients))}
 				broadcast <- quitNotif
 				client.Close()
 				delete(clients, client)

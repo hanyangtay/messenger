@@ -83,7 +83,7 @@ a:hover {
 }
 
 .scrolled {
-  transform: translateY(-6em);
+  transform: translateY(-7em);
 }
 
 .header-home {

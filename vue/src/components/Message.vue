@@ -1,20 +1,20 @@
 <template>
   <div class="message">
     <div v-if="!own">
-    <span class="username"> {{ message.user }} </span>
+    <span class="username"> {{ message.username }} </span>
     <span class="time mdc-typography--caption">at {{message.time}}</span>
       <br />
     <span class="text">
-    {{ message.text }}
+    {{ message.message }}
     </span>
     </div>
 
     <div v-else class="right">
-      <span class="username"> {{ message.user }} </span>
+      <span class="username"> {{ message.username }} </span>
       <span class="time mdc-typography--caption">at {{message.time}}</span>
         <br />
       <span class="text">
-      {{ message.text }}
+      {{ message.message }}
       </span>
 
     </div>
@@ -32,7 +32,7 @@ export default {
   props: ['message', 'username'],
   data () {
     return {
-      own: this.username==this.message.user
+      own: this.username==this.message.username
     }
   },
   mounted() {
