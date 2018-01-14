@@ -142,6 +142,7 @@ export default {
     quit () {
       this.joined = false
       this.ws.close()
+      this.messages = []
     }
   },
   mounted () {
