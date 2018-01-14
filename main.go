@@ -104,6 +104,10 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			broadcast <- quitNotif
 			break
 		}
+		if msg.Message == "" {
+			log.Printf("heartbeat: %v\n", time.Now())
+			continue
+		}
 
 		msg.Time = time.Now()
 

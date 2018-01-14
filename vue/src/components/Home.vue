@@ -92,7 +92,8 @@ export default {
       newMsg: '',
       username: null,
       joined: false,
-      usercount: 0
+      usercount: 0,
+      heartbeatID: null
     }
   },
   methods: {
@@ -111,6 +112,7 @@ export default {
       var self = this
       this.ws = new WebSocket('wss://' + window.location.host + '/ws')
 
+      // listen to new messages
       this.ws.addEventListener('message', function(e) {
         var msg = JSON.parse(e.data)
 
@@ -122,6 +124,19 @@ export default {
         }
         
       })  
+
+      // send heartbeat every 45 seconds
+      this.heartbeatID = setInterval(this.heartbeat, 45000);
+    },
+
+    heartbeat () {
+      if (this.ws.readyState === this.ws.CLOSED) {
+        clearInterval(this.heartbeatID)
+        return
+      }
+      this.ws.send(JSON.stringify({
+          username: this.username,
+          message: ''}))
     },
 
     message () {
