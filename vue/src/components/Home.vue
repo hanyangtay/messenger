@@ -18,7 +18,7 @@
           <br /><br />
 
           <div class="mdc-text-field" id="text-username">
-            <input type="text" id="input-username" v-model.trim="username" class="mdc-text-field__input">
+            <input type="text" id="input-username" v-model="username" class="mdc-text-field__input">
             <label for="input-username" class="mdc-text-field__label">Enter a name</label>
             <div class="mdc-text-field__bottom-line"></div>
           </div>
