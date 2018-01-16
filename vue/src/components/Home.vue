@@ -90,7 +90,7 @@ export default {
       ws: null,
       messages: [],
       newMsg: '',
-      username: null,
+      username: '',
       joined: false,
       usercount: 0,
       heartbeatID: null
