@@ -15,12 +15,10 @@
           <h2> About </h2>
           Open a few tabs, and you can speak to yourself.
           <br /><br />
-          If you whisper in the wind, however softly, the wind carries your thoughts.
-          <br /><br />
-          This page is created for the lingering ones who wish to leave a message in the depths of the internet, hoping nobody hears it, hoping somebody hears it. 
-          <br /><br />
-          Oh, the words that get caught up in our throats. 
+          Leave a message in the depths of the internet!
           <br />
+          Maybe nobody hears it, maybe somebody hears it. 
+          <br /><br />
           
 
           <br /><br />
